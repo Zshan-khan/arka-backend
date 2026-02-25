@@ -8,5 +8,7 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /app
 COPY --from=build /app/target/arka_backend-0.0.1-SNAPSHOT.jar arka.jar
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "arka.jar"]
+
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=$PORT -jar arka.jar"]
