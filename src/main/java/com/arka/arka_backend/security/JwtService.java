@@ -1,38 +1,52 @@
 package com.arka.arka_backend.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.SignatureAlgorithm;
+
 import io.jsonwebtoken.security.Keys;
+
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+
 import java.util.Date;
 
 @Service
 public class JwtService {
 
-    private static final String SECRET = "YXJrYV9sdXh1cnlfY2FyX3JlbnRhbF9zZWNyZXRfMjAyNl9nZW1pbmk=";
+    private final String SECRET =
+            "arkaSuperSecretKeyarkaSuperSecretKey123456";
 
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private SecretKey getSignKey() {
+
+        return Keys.hmacShaKeyFor(SECRET.getBytes());
+
     }
 
     public String generateToken(String email) {
+
         return Jwts.builder()
-                .subject(email)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 hours
-                .signWith(getSigningKey())
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(
+                        new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)
+                )
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
+
     }
 
     public String extractEmail(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
                 .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getSubject();
+
     }
+
 }
