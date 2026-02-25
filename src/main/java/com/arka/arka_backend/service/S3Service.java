@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import jakarta.annotation.PostConstruct;
+
 import java.io.IOException;
 import java.util.UUID;
 
@@ -19,10 +20,13 @@ public class S3Service {
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
+
     @Value("${aws.region}")
     private String region;
+
     @Value("${aws.access.key}")
     private String accessKey;
+
     @Value("${aws.secret.key}")
     private String secretKey;
 
@@ -30,11 +34,13 @@ public class S3Service {
 
     @PostConstruct
     public void init() {
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
-        this.s3Client = S3Client.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .build();
+        if (!"none".equals(accessKey) && !"none".equals(secretKey)) {
+            AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+            this.s3Client = S3Client.builder()
+                    .region(Region.of(region))
+                    .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                    .build();
+        }
     }
 
     public String uploadFile(MultipartFile file) throws IOException {
