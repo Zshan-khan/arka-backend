@@ -8,12 +8,11 @@
     <artifactId>arka_backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>arka_backend</name>
-    <description>Arka Luxury Car Rental Backend</description>
-
+    
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.4.3</version>
         <relativePath/>
     </parent>
 
