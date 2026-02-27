@@ -24,38 +24,37 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(sess ->
-                    sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .sessionManagement(sess -> 
+                sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+                // 1. System & Health Check endpoints
+                .requestMatchers("/", "/error", "/favicon.ico").permitAll()
 
-                    // 1. System & Health Check endpoints
-                    .requestMatchers("/", "/error", "/favicon.ico").permitAll()
+                // 2. Open Admin AUTH endpoints
+                .requestMatchers("/api/admin/login", "/api/admin/register").permitAll()
 
-                    // 2. Open Admin AUTH endpoints (Corrected paths)
-                    .requestMatchers(
-                            "/api/admin/login",
-                            "/api/admin/register"
-                    ).permitAll()
+                // 3. Open PUBLIC Car Viewing
+                // This allows the gallery to load on your frontend
+                .requestMatchers(HttpMethod.GET, "/api/cars").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/cars/**").permitAll()
 
-                    // 3. Open PUBLIC data endpoints
-                    .requestMatchers(
-                            "/api/cars",
-                            "/api/cars/**",
-                            "/api/contact"
-                    ).permitAll()
+                // 4. Secure Car MANAGEMENT & Admin Actions
+                // Matches your CarController's POST, PUT, and DELETE routes
+                .requestMatchers(HttpMethod.POST, "/api/cars/upload").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/cars/**").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/cars/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
 
-                    // 4. Secure all other ADMIN endpoints (Must come AFTER permitAll)
-                    .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
+                // 5. Open Contact
+                .requestMatchers("/api/contact").permitAll()
 
-                    // 5. Catch-all for any other endpoint
-                    .anyRequest().authenticated()
+                // 6. Catch-all
+                .anyRequest().authenticated()
             )
-            // Add our JWT filter before the standard username/password filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -67,15 +66,12 @@ public class SecurityConfig {
 
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "https://arka-backend-28zq.onrender.com",
-                "https://*.onrender.com"
+                "https://arka-frontend.vercel.app", // Your production frontend
+                "https://arka-backend-28zq.onrender.com"
         ));
 
-        config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
-
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

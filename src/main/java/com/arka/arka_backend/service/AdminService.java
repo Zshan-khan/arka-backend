@@ -1,66 +1,66 @@
-package com.arka.arka_backend.service;
+    package com.arka.arka_backend.service;
 
-import com.arka.arka_backend.entity.Admin;
-import com.arka.arka_backend.repository.AdminRepository;
-import com.arka.arka_backend.security.JwtService;
+    import com.arka.arka_backend.entity.Admin;
+    import com.arka.arka_backend.repository.AdminRepository;
+    import com.arka.arka_backend.security.JwtService;
 
-import lombok.RequiredArgsConstructor;
+    import lombok.RequiredArgsConstructor;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
+    import org.springframework.security.crypto.password.PasswordEncoder;
 
-import org.springframework.stereotype.Service;
+    import org.springframework.stereotype.Service;
 
-@Service
-@RequiredArgsConstructor
-public class AdminService {
-
-
-    private final AdminRepository adminRepository;
-
-    private final PasswordEncoder passwordEncoder;
-
-    private final JwtService jwtService;
+    @Service
+    @RequiredArgsConstructor
+    public class AdminService {
 
 
+        private final AdminRepository adminRepository;
 
-    public Admin registerAdmin(Admin admin) {
+        private final PasswordEncoder passwordEncoder;
 
-
-        admin.setPassword(
-                passwordEncoder.encode(admin.getPassword())
-        );
-
-
-        if (admin.getRole() == null) {
-
-            admin.setRole("ADMIN");
-
-        }
-
-
-        return adminRepository.save(admin);
-
-    }
+        private final JwtService jwtService;
 
 
 
-    public String login(String email, String password) {
+        public Admin registerAdmin(Admin admin) {
 
 
-        Admin admin = adminRepository
-                .findByEmail(email)
-                .orElseThrow();
+            admin.setPassword(
+                    passwordEncoder.encode(admin.getPassword())
+            );
 
 
-        if (!passwordEncoder.matches(password, admin.getPassword())) {
+            if (admin.getRole() == null) {
 
-            throw new RuntimeException("Invalid password");
+                admin.setRole("ADMIN");
+
+            }
+
+
+            return adminRepository.save(admin);
 
         }
 
 
-        return jwtService.generateToken(email);
+
+        public String login(String email, String password) {
+
+
+            Admin admin = adminRepository
+                    .findByEmail(email)
+                    .orElseThrow();
+
+
+            if (!passwordEncoder.matches(password, admin.getPassword())) {
+
+                throw new RuntimeException("Invalid password");
+
+            }
+
+
+            return jwtService.generateToken(email);
+
+        }
 
     }
-
-}
